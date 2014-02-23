@@ -5,11 +5,11 @@ import java.io.IOException;
 import java.util.StringTokenizer;
 
 class GetMeetingPoint{
-	int id1;
-	int id2;
+	static int id1;
+	static int id2;
 	static float distance1;
 	static float distance2;
-	static float mindistance;
+	static float mindistance = 1000;
 	private static int GROUP_NUMBER = 9; 
 	private static MBR[] MBRs = new MBR[GROUP_NUMBER];
 	
@@ -18,6 +18,8 @@ class GetMeetingPoint{
 		for (int i = 0; i < GROUP_NUMBER; i++){
 			MBRs[i].showMBR();
 		}
+		reachMBRgroup(1, 720, 120);
+		System.out.println(id1 + "\t"+mindistance);
 	}
 	public static void readMBRs(){
 		String filepath = "src/group_mbrs.txt";
@@ -51,6 +53,7 @@ class GetMeetingPoint{
 		        MBRs[i] = new MBR(id, x1, y1, x2, y2);
 		        i++;
 			}
+			br.close();
 		}catch(IOException ioe){
 			ioe.printStackTrace();
 		}
@@ -68,9 +71,46 @@ class GetMeetingPoint{
 		return (x >= mbr.lower_x && x <= mbr.upper_x && y >= mbr.lower_y && y <= mbr.upper_y);
 	}
 	
+	public static void reachMBRgroup(int i, int x, int y){
+		String filepath =  "restaurant_data/restaurants_group_";
+		String filename = filepath + Integer.toString(i) + ".txt";
+		File f = new File(filename);
+		float distance;
+		try{
+			BufferedReader br = new BufferedReader(new FileReader(f));
+			String temp = null;
+			while((temp = br.readLine()) != null){
+		        StringTokenizer token = new StringTokenizer(temp.substring(0, temp.length() - 1)); 
+		        int n = 0;
+		        int id = 0;
+				float MBRx = 0;
+				float MBRy = 0;
+		        while(token.hasMoreElements()){
+		        	if(n == 0){
+		        		id = Integer.parseInt(token.nextToken());
+		        	}else if(n == 1){
+		        		MBRx = Float.parseFloat(token.nextToken());
+		        	}else if(n == 2){
+		        		MBRy = Float.parseFloat(token.nextToken());
+		        	}   
+		        	n++;
+		        }
+		        float value = ((x - MBRx) * (x - MBRx) + (y - MBRy) * (y - MBRy));  
+		        distance = (float) Math.sqrt(value);
+		        if (distance <= mindistance)
+		        	mindistance = distance;
+		        	id1 = id;
+			}
+			br.close();
+		}catch(IOException ioe){
+			ioe.printStackTrace();
+		}
+	}
 	public static void getmin(int x, int y){
 		for (int i = 0; i < GROUP_NUMBER; i++){
-			
+			if (isInMBR(x, y, MBRs[i])){
+				
+			}
 		}
 	}
 	
