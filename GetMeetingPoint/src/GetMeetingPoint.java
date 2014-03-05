@@ -1,3 +1,4 @@
+import java.awt.MultipleGradientPaint.CycleMethod;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -5,91 +6,206 @@ import java.io.IOException;
 import java.util.*;
 
 class GetMeetingPoint{
-	static int id1;
-	static int id2;
-	static float distance1;
-	static float distance2;
-	static float mindistancex = 1000;
-	static float mindistancey = 1000;
 	private static int GROUP_NUMBER = 9; 
 	private static MBR[] MBRs = new MBR[GROUP_NUMBER];
-	private static int optResId;
-	private static int optDistance;
-	private static Comparator<Restaurantx> compx = new Comparator<Restaurantx>() {
-		
-		@Override
-		public int compare(Restaurantx o1, Restaurantx o2) {
-			// TODO Auto-generated method stub
-			if (o1.getDistance() - o2.getDistance() <= 0){
-				return 1;
-			}else {
-				return 0;
-			}
-		}
-	}; 
-	private static Comparator<Restauranty> compy = new Comparator<Restauranty>() {
-		
-		@Override
-		public int compare(Restauranty o1, Restauranty o2) {
-			// TODO Auto-generated method stub
-			if (o1.getDistance() - o2.getDistance() <= 0){
-				return 1;
-			}else {
-				return 0;
-			}
-		}
-	}; 
+	private static int bestResId;
+	private static int bestDistance;
 	
-	private static Queue<Restaurantx> restaurantxQueue = new PriorityQueue<Restaurantx>(20,compx);
-	private static Queue<Restauranty> restaurantyQueue = new PriorityQueue<Restauranty>(20,compy);
+	private static Comparator<Choice> comp = new Comparator<Choice>(){
+		public int compare(Choice o1, Choice o2) {
+			if(o1.getDistance() - o2.getDistance() < 0){
+				return -1;
+			}else{
+				return 1;
+			}
+		}
+	};
+	
+	public static class Choice{
+		private Restaurant r;
+		private float distance;
+		private int x;
+		private int y;
+		
+		public Choice(Restaurant r, int x, int y){
+			this.r = r;
+			this.x = x;
+			this.y = y;
+			this.distance = (float) Math.sqrt((x - r.getRestx()) * (x - r.getRestx()) + (y - r.getResty()) * (y - r.getResty())); 
+		}
+		public float getDistance(){
+			return distance;
+		}
+		public int getId(){
+			return r.getId();
+		}
+		public int getx(){
+			return x;
+		}
+		public int gety(){
+			return y;
+		}
+		public Restaurant getRestaurant(){
+			return r;
+		}
+	}
+	
+	public static class Restaurant{
+		private int id;
+		private float rx;
+		private float ry;
+		
+		public Restaurant(int id, float rx, float ry){
+			this.id = id;
+			this.rx = rx;
+			this.ry = ry;
+
+		}
+		public float getRestx(){
+			return this.rx;
+		}
+		public float getResty(){
+			return this.ry;
+		}
+		public int getId(){
+			return this.id;
+		}
+	}
+
+	private static Queue<Choice> choicex =  new PriorityQueue<Choice>(20, comp);
+	private static Queue<Choice> choicey =  new PriorityQueue<Choice>(20, comp);
+	
+	public static void findChoicex(int x, int y){
+		while(!choicex.isEmpty()){
+			choicex.poll();
+		}
+		float mindistance = 1000;
+		for (int i = 0; i < GROUP_NUMBER; i++){
+			String filepath =  "restaurant_data/restaurants_group_";
+			String filename = filepath + Integer.toString(i) + ".txt";
+			File f = new File(filename);
+			try{
+				BufferedReader br = new BufferedReader(new FileReader(f));
+				String temp = null;
+				while((temp = br.readLine()) != null){
+			        StringTokenizer token = new StringTokenizer(temp.substring(0, temp.length() - 1)); 
+			        int n = 0;
+			        int id = 0;
+					float MBRx = 0;
+					float MBRy = 0;
+			        while(token.hasMoreElements()){
+			        	if(n == 0){
+			        		id = Integer.parseInt(token.nextToken());
+			        	}else if(n == 1){
+			        		MBRx = Float.parseFloat(token.nextToken());
+			        	}else if(n == 2){
+			        		MBRy = Float.parseFloat(token.nextToken());
+			        	}   
+			        	n++;
+			        }
+			        Choice choice = new Choice(new Restaurant(id, MBRx, MBRy), x, y);
+			        if (choice.getDistance() < mindistance){
+			        	choicex.add(choice);
+			        	mindistance = choice.getDistance();
+			        }
+				}
+				br.close();
+			}catch(IOException ioe){
+				ioe.printStackTrace();
+			}
+		}
+	}
+	
+	public static void findChoicey(int x, int y){
+		while(!choicey.isEmpty()){
+			choicey.poll();
+		}
+		float mindistance = 1000;
+		for (int i = 0; i < GROUP_NUMBER; i++){
+			String filepath =  "restaurant_data/restaurants_group_";
+			String filename = filepath + Integer.toString(i) + ".txt";
+			File f = new File(filename);
+			try{
+				BufferedReader br = new BufferedReader(new FileReader(f));
+				String temp = null;
+				while((temp = br.readLine()) != null){
+			        StringTokenizer token = new StringTokenizer(temp.substring(0, temp.length() - 1)); 
+			        int n = 0;
+			        int id = 0;
+					float MBRx = 0;
+					float MBRy = 0;
+			        while(token.hasMoreElements()){
+			        	if(n == 0){
+			        		id = Integer.parseInt(token.nextToken());
+			        	}else if(n == 1){
+			        		MBRx = Float.parseFloat(token.nextToken());
+			        	}else if(n == 2){
+			        		MBRy = Float.parseFloat(token.nextToken());
+			        	}   
+			        	n++;
+			        }
+			        Choice choice = new Choice(new Restaurant(id, MBRx, MBRy), x, y);
+			        if (choice.getDistance() < mindistance){
+			        	choicey.add(choice);
+			        	mindistance = choice.getDistance();
+			        }
+				}
+				br.close();
+			}catch(IOException ioe){
+				ioe.printStackTrace();
+			}
+		}
+	}
 	
 	public static void main(String args[]){
 		readMBRs();
 		for (int i = 0; i < GROUP_NUMBER; i++){
 			MBRs[i].showMBR();
 		}
-		findNearestNeighbourx(720, 120);
-		findNearestNeighboury(215, 820);
-		findOptimizeRestaurant();
-		System.out.println(optResId + "\t" + optDistance);
-		findNearestNeighbourx(30, 120);
-		findNearestNeighboury(450, 680);
-		findOptimizeRestaurant();
-		System.out.println(optResId + "\t" + optDistance);
+		System.out.println("============================");
+		findChoicex(720, 120);
+		findChoicey(215, 820);
+		findBestChoice();
+		System.out.println(bestResId + "\t" + bestDistance);
+		System.out.println("============================");
 		
+		findChoicex(320, 120);
+		findChoicey(450, 680);
+		findBestChoice();
+		System.out.println(bestResId + "\t" + bestDistance);
 	}
 	
-	public static void findOptimizeRestaurant(){
-		float mindistance = 1000;
-		Restaurantx rx = null;
-		Restauranty ry = null;
-		int flag = 0;
-		while(restaurantxQueue.peek() != null && restaurantyQueue.peek() != null && restaurantxQueue.peek().getDistance() <= mindistance && restaurantyQueue.peek().getDistance() <= mindistance){
-			if  (restaurantxQueue.peek().getDistance() <= restaurantyQueue.peek().getDistance()){
-				mindistance = getMax(restaurantxQueue.peek().getDistance(), getDistancex(restaurantxQueue.peek(), restaurantyQueue.peek().getPerx(), restaurantyQueue.peek().getPery()));
-				rx = restaurantxQueue.poll();
-				flag = 0;
-			}else {
-				mindistance = getMax(restaurantyQueue.peek().getDistance(), getDistancey(restaurantyQueue.peek(), restaurantxQueue.peek().getPerx(), restaurantxQueue.peek().getPery()));
-				ry = restaurantyQueue.poll();
-				flag = 1;
-			}  
-		}
-		if (flag == 0){
-			optDistance = (int) rx.getDistance();
-			optResId = rx.getId();
-		}else if(flag == 1){
-			optDistance = (int) ry.getDistance();
-			optResId = ry.getId();
-		}
-	}
 
-	public static float getDistancex(Restaurantx r, int x, int y){
-		return (float)Math.sqrt((x-r.getRestx()) * (x-r.getRestx()) + (y-r.getRestx()) + (y-r.getResty()));
+	public static void findBestChoice(){
+		float mindistance = 2000;
+		Restaurant r = null;
+		while(!choicex.isEmpty() && !choicey.isEmpty() && choicex.peek().getDistance() < mindistance && choicey.peek().getDistance() < mindistance){
+			if(choicex.peek().getId() == choicey.peek().getId() && choicex.peek().getDistance() < mindistance){
+				r = choicex.peek().getRestaurant();
+				mindistance = choicex.peek().getDistance();
+				break;
+			}
+			else {
+				if(getDistance(choicex.peek().getRestaurant(), choicey.peek().getx(), choicey.peek().gety()) <= getDistance(choicey.peek().getRestaurant(), choicex.peek().getx(), choicex.peek().gety())){
+					r = choicex.peek().getRestaurant();
+					mindistance = getDistance(choicex.peek().getRestaurant(), choicey.peek().getx(), choicey.peek().gety());
+					choicey.poll();
+				}else{
+					r = choicey.peek().getRestaurant();
+					mindistance = getDistance(choicey.peek().getRestaurant(), choicex.peek().getx(), choicex.peek().gety());
+					choicex.poll();
+				}	
+			}
+		}
+		bestResId = r.getId();
+		bestDistance = (int) mindistance;
 	}
-	public static float getDistancey(Restauranty r, int x, int y){
-		return (float)Math.sqrt((x-r.getRestx()) * (x-r.getRestx()) + (y-r.getRestx()) + (y-r.getResty()));
+	
+
+	public static float getDistance(Restaurant r, int x, int y){
+		return (float)Math.sqrt((x-r.getRestx()) * (x-r.getRestx()) + (y-r.getResty()) * (y-r.getResty()));
 	}
+	
 	
 	public static void readMBRs(){
 		String filepath = "src/group_mbrs.txt";
@@ -129,85 +245,7 @@ class GetMeetingPoint{
 		}
 	}
 
-//	find kth nearest restaurant for X
-	public static void findNearestNeighbourx(int x, int y){
-		for (int i = 0; i < GROUP_NUMBER; i++){
-			String filepath =  "restaurant_data/restaurants_group_";
-			String filename = filepath + Integer.toString(i) + ".txt";
-			File f = new File(filename);
-			float distance;
-			try{
-				BufferedReader br = new BufferedReader(new FileReader(f));
-				String temp = null;
-				while((temp = br.readLine()) != null){
-			        StringTokenizer token = new StringTokenizer(temp.substring(0, temp.length() - 1)); 
-			        int n = 0;
-			        int id = 0;
-					float MBRx = 0;
-					float MBRy = 0;
-					Restaurantx rest;
-			        while(token.hasMoreElements()){
-			        	if(n == 0){
-			        		id = Integer.parseInt(token.nextToken());
-			        	}else if(n == 1){
-			        		MBRx = Float.parseFloat(token.nextToken());
-			        	}else if(n == 2){
-			        		MBRy = Float.parseFloat(token.nextToken());
-			        	}   
-			        	n++;
-			        }
-			        rest = new Restaurantx(id, MBRx, MBRy, x, y);
-			        if (rest.getDistance() < mindistancex){
-			        	mindistancex = rest.getDistance();
-			        	restaurantxQueue.add(rest);
-			        }
-				}
-				br.close();
-			}catch(IOException ioe){
-				ioe.printStackTrace();
-			}
-		}
-	}
-	
-//	find kth nearest restaurant 
-	public static void findNearestNeighboury(int x, int y){
-		for (int i = 0; i < GROUP_NUMBER; i++){
-			String filepath =  "restaurant_data/restaurants_group_";
-			String filename = filepath + Integer.toString(i) + ".txt";
-			File f = new File(filename);
-			float distance;
-			try{
-				BufferedReader br = new BufferedReader(new FileReader(f));
-				String temp = null;
-				while((temp = br.readLine()) != null){
-			        StringTokenizer token = new StringTokenizer(temp.substring(0, temp.length() - 1)); 
-			        int n = 0;
-			        int id = 0;
-					float MBRx = 0;
-					float MBRy = 0;
-					Restauranty rest;
-			        while(token.hasMoreElements()){
-			        	if(n == 0){
-			        		id = Integer.parseInt(token.nextToken());
-			        	}else if(n == 1){
-			        		MBRx = Float.parseFloat(token.nextToken());
-			        	}else if(n == 2){
-			        		MBRy = Float.parseFloat(token.nextToken());
-			        	}   
-			        	n++;
-			        }
-			        rest = new Restauranty(id, MBRx, MBRy, x, y);
-			        if (rest.getDistance() < mindistancex){
-			        	mindistancey = rest.getDistance();
-			        	restaurantyQueue.add(rest);
-			        }
-				}
-				br.close();
-			}catch(IOException ioe){
-				ioe.printStackTrace();
-			}
-		}
-	}
+
 //	return the smaller figure
 	public static float getMin(float d1, float d2){
 		return (d1 <= d2) ? d1 : d2;
@@ -222,139 +260,6 @@ class GetMeetingPoint{
 		return (x >= mbr.lower_x && x <= mbr.upper_x && y >= mbr.lower_y && y <= mbr.upper_y);
 	}
 	
-//	public static void reachMBRgroup(int i, int x, int y){
-//		String filepath =  "restaurant_data/restaurants_group_";
-//		String filename = filepath + Integer.toString(i) + ".txt";
-//		File f = new File(filename);
-//		float distance;
-//		try{
-//			BufferedReader br = new BufferedReader(new FileReader(f));
-//			String temp = null;
-//			while((temp = br.readLine()) != null){
-//		        StringTokenizer token = new StringTokenizer(temp.substring(0, temp.length() - 1)); 
-//		        int n = 0;
-//		        int id = 0;
-//				float MBRx = 0;
-//				float MBRy = 0;
-//		        while(token.hasMoreElements()){
-//		        	if(n == 0){
-//		        		id = Integer.parseInt(token.nextToken());
-//		        	}else if(n == 1){
-//		        		MBRx = Float.parseFloat(token.nextToken());
-//		        	}else if(n == 2){
-//		        		MBRy = Float.parseFloat(token.nextToken());
-//		        	}   
-//		        	n++;
-//		        }
-//		        float value = ((x - MBRx) * (x - MBRx) + (y - MBRy) * (y - MBRy));  
-//		        distance = (float) Math.sqrt(value);
-//		        if (distance <= mindistance)
-//		        	mindistance = distance;
-//		        	id1 = id;
-//			}
-//			br.close();
-//		}catch(IOException ioe){
-//			ioe.printStackTrace();
-//		}
-//	}
-	public static void getmin(int x, int y){
-		for (int i = 0; i < GROUP_NUMBER; i++){
-			if (isInMBR(x, y, MBRs[i])){
-				
-			}
-		}
-	}
-//	Define class Restaurantx
-	public static class Restaurantx{
-		private int id;
-		private float rx;
-		private float ry;
-		private float distance;
-		private int px;
-		private int py;
-		
-		public Restaurantx(int id, float rx, float ry, int px, int py){
-			this.id = id;
-			this.rx = rx;
-			this.ry = ry;
-			this.px = px;
-			this.py = py;
-			this.distance = (float)Math.sqrt((rx - px) * (rx - px) + (ry - py) * (ry - py));
-		}
-		
-		public float getDistance(){
-			return this.distance;
-		}
-		public float getRestx(){
-			return this.rx;
-		}
-		public float getResty(){
-			return this.ry;
-		}
-		public int getPerx(){
-			return this.px;
-		}
-		public int getPery(){
-			return this.py;
-		}
-		public int getId(){
-			return this.id;
-		}
-	}
-
-//	Define class Restauranty
-	public static class Restauranty{
-		private int id;
-		private float rx;
-		private float ry;
-		private float distance;
-		private int px;
-		private int py;
-		
-		public Restauranty(int id, float rx, float ry, int px, int py){
-			this.id = id;
-			this.rx = rx;
-			this.ry = ry;
-			this.px = px;
-			this.py = py;
-			this.distance = (float)Math.sqrt((rx - px) * (rx - px) + (ry - py) * (ry - py));
-		}
-		
-		public float getDistance(){
-			return this.distance;
-		}
-		public float getRestx(){
-			return this.rx;
-		}
-		public float getResty(){
-			return this.ry;
-		}
-		public int getPerx(){
-			return this.px;
-		}
-		public int getPery(){
-			return this.py;
-		}
-		public int getId(){
-			return this.id;
-		}
-	}
-	
-//	Define class Person
-	public static class Person{
-		private String id;
-		private int x;
-		private int y;
-		
-		public Person(String id, int x, int y){
-			this.id = id;
-			this.x = x;
-			this.y = y;
-		}
-//		public getDistance(){
-//			
-//		}
-	}
 	
 //	Define class MBR
 	public static class MBR{
